@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포모도로 타이머</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            min-width: 400px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .timer-circle {
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            stroke: #f0f0f0;
+            fill: none;
+            stroke-width: 8;
+        }
+
+        .progress-ring-progress {
+            stroke: #667eea;
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3.5em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .start-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .start-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .status {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        .status.work {
+            color: #667eea;
+        }
+
+        .status.break {
+            color: #51cf66;
+        }
+
+        .settings {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .settings h3 {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .setting-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .setting-input {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .setting-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .setting-input::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .setting-input::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .setting-input::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .setting-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .setting-input:disabled::-webkit-slider-thumb {
+            cursor: not-allowed;
+            background: #999;
+        }
+
+        .setting-input:disabled::-moz-range-thumb {
+            cursor: not-allowed;
+            background: #999;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .timer-circle.running {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍅 포모도로 타이머</h1>
+
+        <div class="settings">
+            <h3>⚙️ 타이머 설정</h3>
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>작업 시간</span>
+                    <span class="setting-value"><span id="workValue">25</span>분</span>
+                </div>
+                <input type="range" id="workDuration" class="setting-input" min="5" max="60" value="25">
+            </div>
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>휴식 시간</span>
+                    <span class="setting-value"><span id="breakValue">5</span>분</span>
+                </div>
+                <input type="range" id="breakDuration" class="setting-input" min="1" max="30" value="5">
+            </div>
+        </div>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="work">작업 (<span id="workModeLabel">25</span>분)</button>
+            <button class="mode-btn" data-mode="break">휴식 (<span id="breakModeLabel">5</span>분)</button>
+        </div>
+
+        <div class="timer-circle" id="timerCircle">
+            <svg class="progress-ring" width="280" height="280">
+                <circle class="progress-ring-circle" cx="140" cy="140" r="130"></circle>
+                <circle class="progress-ring-progress" id="progressCircle" cx="140" cy="140" r="130"></circle>
+            </svg>
+            <div class="timer-display" id="timerDisplay">25:00</div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn start-btn" id="startBtn">시작</button>
+            <button class="control-btn reset-btn" id="resetBtn">리셋</button>
+        </div>
+
+        <div class="status" id="status">시작 버튼을 눌러주세요</div>
+    </div>
+
+    <script>
+        // 설정 값
+        let workDuration = 25; // 분
+        let breakDuration = 5; // 분
+
+        // 타이머 상태
+        let currentMode = 'work';
+        let timeLeft = 25 * 60; // 초 단위
+        let totalTime = 25 * 60;
+        let isRunning = false;
+        let timerInterval = null;
+
+        // DOM 요소
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const status = document.getElementById('status');
+        const timerCircle = document.getElementById('timerCircle');
+        const progressCircle = document.getElementById('progressCircle');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const workDurationInput = document.getElementById('workDuration');
+        const breakDurationInput = document.getElementById('breakDuration');
+        const workValue = document.getElementById('workValue');
+        const breakValue = document.getElementById('breakValue');
+        const workModeLabel = document.getElementById('workModeLabel');
+        const breakModeLabel = document.getElementById('breakModeLabel');
+
+        // SVG circle 설정
+        const radius = 130;
+        const circumference = 2 * Math.PI * radius;
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = circumference;
+
+        // localStorage 설정 저장
+        function saveSettings() {
+            const settings = {
+                workDuration: workDuration,
+                breakDuration: breakDuration
+            };
+            localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+        }
+
+        // localStorage 설정 로드
+        function loadSettings() {
+            const saved = localStorage.getItem('pomodoroSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                workDuration = settings.workDuration || 25;
+                breakDuration = settings.breakDuration || 5;
+
+                // UI 업데이트
+                workDurationInput.value = workDuration;
+                breakDurationInput.value = breakDuration;
+                workValue.textContent = workDuration;
+                breakValue.textContent = breakDuration;
+                workModeLabel.textContent = workDuration;
+                breakModeLabel.textContent = breakDuration;
+
+                // 현재 모드에 맞게 타이머 초기화
+                if (currentMode === 'work') {
+                    timeLeft = workDuration * 60;
+                    totalTime = workDuration * 60;
+                } else {
+                    timeLeft = breakDuration * 60;
+                    totalTime = breakDuration * 60;
+                }
+            }
+        }
+
+        // 설정 입력 활성화/비활성화
+        function updateSettingsState() {
+            workDurationInput.disabled = isRunning;
+            breakDurationInput.disabled = isRunning;
+        }
+
+        // 알람 소리 생성 (Web Audio API 사용)
+        function playAlarm() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+
+            // 두 번째 소리
+            setTimeout(() => {
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+
+                oscillator2.frequency.value = 1000;
+                oscillator2.type = 'sine';
+
+                gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator2.start(audioContext.currentTime);
+                oscillator2.stop(audioContext.currentTime + 0.5);
+            }, 200);
+        }
+
+        // 시간 표시 포맷팅
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 진행 상태 업데이트
+        function updateProgress() {
+            const progress = timeLeft / totalTime;
+            const offset = circumference - (progress * circumference);
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        // 타이머 디스플레이 업데이트
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+            updateProgress();
+        }
+
+        // 타이머 틱
+        function tick() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateDisplay();
+            } else {
+                // 타이머 완료
+                stopTimer();
+                playAlarm();
+
+                if (currentMode === 'work') {
+                    status.textContent = '🎉 작업 완료! 휴식 시간입니다.';
+                    status.className = 'status break';
+                } else {
+                    status.textContent = '✨ 휴식 완료! 다시 집중할 시간입니다.';
+                    status.className = 'status work';
+                }
+            }
+        }
+
+        // 타이머 시작
+        function startTimer() {
+            if (isRunning) return;
+
+            isRunning = true;
+            startBtn.textContent = '정지';
+            timerCircle.classList.add('running');
+            updateSettingsState(); // 설정 비활성화
+
+            if (currentMode === 'work') {
+                status.textContent = '🔥 집중 중...';
+                status.className = 'status work';
+            } else {
+                status.textContent = '☕ 휴식 중...';
+                status.className = 'status break';
+            }
+
+            timerInterval = setInterval(tick, 1000);
+        }
+
+        // 타이머 정지
+        function stopTimer() {
+            isRunning = false;
+            startBtn.textContent = '시작';
+            timerCircle.classList.remove('running');
+            updateSettingsState(); // 설정 활성화
+
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // 타이머 리셋
+        function resetTimer() {
+            stopTimer();
+            timeLeft = totalTime;
+            updateDisplay();
+            status.textContent = '시작 버튼을 눌러주세요';
+            status.className = 'status';
+        }
+
+        // 모드 변경
+        function changeMode(mode) {
+            if (isRunning) {
+                stopTimer();
+            }
+
+            currentMode = mode;
+
+            if (mode === 'work') {
+                timeLeft = workDuration * 60;
+                totalTime = workDuration * 60;
+                progressCircle.style.stroke = '#667eea';
+            } else {
+                timeLeft = breakDuration * 60;
+                totalTime = breakDuration * 60;
+                progressCircle.style.stroke = '#51cf66';
+            }
+
+            updateDisplay();
+            status.textContent = '시작 버튼을 눌러주세요';
+            status.className = 'status';
+
+            // 활성 버튼 업데이트
+            modeBtns.forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // 이벤트 리스너
+        startBtn.addEventListener('click', () => {
+            if (isRunning) {
+                stopTimer();
+                status.textContent = '일시정지';
+                status.className = 'status';
+            } else {
+                startTimer();
+            }
+        });
+
+        resetBtn.addEventListener('click', resetTimer);
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                changeMode(btn.dataset.mode);
+            });
+        });
+
+        // 설정 변경 이벤트
+        workDurationInput.addEventListener('input', (e) => {
+            workDuration = parseInt(e.target.value);
+            workValue.textContent = workDuration;
+            workModeLabel.textContent = workDuration;
+            saveSettings();
+
+            // 현재 작업 모드이고 타이머가 실행 중이 아니면 업데이트
+            if (currentMode === 'work' && !isRunning) {
+                timeLeft = workDuration * 60;
+                totalTime = workDuration * 60;
+                updateDisplay();
+            }
+        });
+
+        breakDurationInput.addEventListener('input', (e) => {
+            breakDuration = parseInt(e.target.value);
+            breakValue.textContent = breakDuration;
+            breakModeLabel.textContent = breakDuration;
+            saveSettings();
+
+            // 현재 휴식 모드이고 타이머가 실행 중이 아니면 업데이트
+            if (currentMode === 'break' && !isRunning) {
+                timeLeft = breakDuration * 60;
+                totalTime = breakDuration * 60;
+                updateDisplay();
+            }
+        });
+
+        // 초기화
+        loadSettings(); // 설정 로드
+        updateDisplay();
+        updateSettingsState(); // 설정 상태 초기화
+    </script>
+</body>
+</html>
