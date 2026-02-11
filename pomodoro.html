@@ -254,6 +254,180 @@
         .timer-circle.running {
             animation: pulse 2s ease-in-out infinite;
         }
+
+        .task-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .task-info h3 {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #5568d3;
+        }
+
+        .btn-manage {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .btn-manage:hover {
+            background: #d0d0d0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .category-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-delete {
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background: #ff5252;
+        }
     </style>
 </head>
 <body>
@@ -278,6 +452,28 @@
             </div>
         </div>
 
+        <div class="task-info">
+            <h3>📝 작업 정보</h3>
+            <div class="input-group">
+                <label for="taskName">작업 이름</label>
+                <input type="text" id="taskName" placeholder="예: 프로젝트 개발, 보고서 작성...">
+            </div>
+            <div class="input-group">
+                <label for="taskCategory">카테고리</label>
+                <select id="taskCategory">
+                    <option value="개발">개발</option>
+                    <option value="디자인">디자인</option>
+                    <option value="회의">회의</option>
+                    <option value="학습">학습</option>
+                    <option value="기타">기타</option>
+                </select>
+                <div class="category-actions">
+                    <button class="btn-small btn-add" id="addCategoryBtn">+ 카테고리 추가</button>
+                    <button class="btn-small btn-manage" id="manageCategoryBtn">관리</button>
+                </div>
+            </div>
+        </div>
+
         <div class="mode-selector">
             <button class="mode-btn active" data-mode="work">작업 (<span id="workModeLabel">25</span>분)</button>
             <button class="mode-btn" data-mode="break">휴식 (<span id="breakModeLabel">5</span>분)</button>
@@ -299,10 +495,28 @@
         <div class="status" id="status">시작 버튼을 눌러주세요</div>
     </div>
 
+    <!-- 카테고리 관리 모달 -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>카테고리 관리</h3>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <ul class="category-list" id="categoryList">
+                <!-- 카테고리 목록이 여기에 동적으로 추가됩니다 -->
+            </ul>
+        </div>
+    </div>
+
     <script>
         // 설정 값
         let workDuration = 25; // 분
         let breakDuration = 5; // 분
+
+        // 카테고리 및 세션
+        let categories = ['개발', '디자인', '회의', '학습', '기타'];
+        let sessions = [];
+        let currentSessionStartTime = null;
 
         // 타이머 상태
         let currentMode = 'work';
@@ -325,6 +539,13 @@
         const breakValue = document.getElementById('breakValue');
         const workModeLabel = document.getElementById('workModeLabel');
         const breakModeLabel = document.getElementById('breakModeLabel');
+        const taskNameInput = document.getElementById('taskName');
+        const taskCategorySelect = document.getElementById('taskCategory');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const manageCategoryBtn = document.getElementById('manageCategoryBtn');
+        const categoryModal = document.getElementById('categoryModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const categoryList = document.getElementById('categoryList');
 
         // SVG circle 설정
         const radius = 130;
@@ -366,6 +587,121 @@
                     totalTime = breakDuration * 60;
                 }
             }
+        }
+
+        // localStorage 카테고리 저장
+        function saveCategories() {
+            localStorage.setItem('pomodoroCategories', JSON.stringify(categories));
+        }
+
+        // localStorage 카테고리 로드
+        function loadCategories() {
+            const saved = localStorage.getItem('pomodoroCategories');
+            if (saved) {
+                categories = JSON.parse(saved);
+            }
+            updateCategorySelect();
+        }
+
+        // localStorage 세션 저장
+        function saveSessions() {
+            localStorage.setItem('pomodoroSessions', JSON.stringify(sessions));
+        }
+
+        // localStorage 세션 로드
+        function loadSessions() {
+            const saved = localStorage.getItem('pomodoroSessions');
+            if (saved) {
+                sessions = JSON.parse(saved);
+            }
+        }
+
+        // 카테고리 드롭다운 업데이트
+        function updateCategorySelect() {
+            const currentValue = taskCategorySelect.value;
+            taskCategorySelect.innerHTML = '';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                taskCategorySelect.appendChild(option);
+            });
+            // 이전 선택 값 복원
+            if (categories.includes(currentValue)) {
+                taskCategorySelect.value = currentValue;
+            }
+        }
+
+        // 카테고리 추가
+        function addCategory() {
+            const newCategory = prompt('새 카테고리 이름을 입력하세요:');
+            if (newCategory && newCategory.trim()) {
+                const trimmedCategory = newCategory.trim();
+                if (categories.includes(trimmedCategory)) {
+                    alert('이미 존재하는 카테고리입니다.');
+                    return;
+                }
+                categories.push(trimmedCategory);
+                saveCategories();
+                updateCategorySelect();
+                taskCategorySelect.value = trimmedCategory;
+            }
+        }
+
+        // 카테고리 삭제
+        function deleteCategory(category) {
+            if (categories.length <= 1) {
+                alert('최소 1개의 카테고리는 유지해야 합니다.');
+                return;
+            }
+            if (confirm(`"${category}" 카테고리를 삭제하시겠습니까?`)) {
+                categories = categories.filter(c => c !== category);
+                saveCategories();
+                updateCategorySelect();
+                updateCategoryList();
+            }
+        }
+
+        // 카테고리 목록 모달 업데이트
+        function updateCategoryList() {
+            categoryList.innerHTML = '';
+            categories.forEach(category => {
+                const li = document.createElement('li');
+                li.className = 'category-item';
+                li.innerHTML = `
+                    <span>${category}</span>
+                    <button class="btn-delete" onclick="deleteCategory('${category}')">삭제</button>
+                `;
+                categoryList.appendChild(li);
+            });
+        }
+
+        // 세션 저장
+        function saveSession() {
+            if (currentMode !== 'work') {
+                // 휴식 시간은 저장하지 않음
+                return;
+            }
+
+            const taskName = taskNameInput.value.trim() || '무제';
+            const category = taskCategorySelect.value;
+            const endTime = new Date();
+            const duration = Math.round(totalTime / 60); // 분 단위
+
+            const session = {
+                id: Date.now(),
+                taskName: taskName,
+                category: category,
+                startTime: currentSessionStartTime.toISOString(),
+                endTime: endTime.toISOString(),
+                duration: duration,
+                type: 'work'
+            };
+
+            sessions.push(session);
+            saveSessions();
+
+            console.log('세션 저장됨:', session);
         }
 
         // 설정 입력 활성화/비활성화
@@ -442,8 +778,12 @@
                 playAlarm();
 
                 if (currentMode === 'work') {
+                    // 작업 세션 저장
+                    saveSession();
                     status.textContent = '🎉 작업 완료! 휴식 시간입니다.';
                     status.className = 'status break';
+                    // 작업 이름 초기화
+                    taskNameInput.value = '';
                 } else {
                     status.textContent = '✨ 휴식 완료! 다시 집중할 시간입니다.';
                     status.className = 'status work';
@@ -460,7 +800,9 @@
             timerCircle.classList.add('running');
             updateSettingsState(); // 설정 비활성화
 
+            // 세션 시작 시간 기록
             if (currentMode === 'work') {
+                currentSessionStartTime = new Date();
                 status.textContent = '🔥 집중 중...';
                 status.className = 'status work';
             } else {
@@ -573,8 +915,29 @@
             }
         });
 
+        // 카테고리 관리 이벤트
+        addCategoryBtn.addEventListener('click', addCategory);
+
+        manageCategoryBtn.addEventListener('click', () => {
+            updateCategoryList();
+            categoryModal.classList.add('active');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            categoryModal.classList.remove('active');
+        });
+
+        // 모달 외부 클릭 시 닫기
+        categoryModal.addEventListener('click', (e) => {
+            if (e.target === categoryModal) {
+                categoryModal.classList.remove('active');
+            }
+        });
+
         // 초기화
         loadSettings(); // 설정 로드
+        loadCategories(); // 카테고리 로드
+        loadSessions(); // 세션 로드
         updateDisplay();
         updateSettingsState(); // 설정 상태 초기화
     </script>
